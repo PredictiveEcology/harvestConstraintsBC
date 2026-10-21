@@ -1,0 +1,90 @@
+---
+title: "harvestConstraintsBC Manual"
+date: "Last updated: `r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: false
+    df_print: paged
+    keep_md: yes
+editor_options:
+  chunk_output_type: console
+always_allow_html: true
+---
+
+```{r setup-harvestConstraintsBC, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE,
+                      results = "hold")
+```
+
+**Authors:** Eliot McIntire. Module and documentation are work in progress.
+
+# Overview
+
+*harvestConstraintsBC* makes the spatial harvest constraints for a study area in British
+Columbia, as *simpleHarvestPlanning*'s `spatialConstraints`: one raster layer per constraint,
+holding its rotation age where it applies, `NA` where no harvest is allowed, and 0 where the
+constraint does not apply.
+
+The layers come from the BC Data Catalogue:
+
+- `protected`: parks and protected areas (no harvest).
+- `oldGrowthMgmtArea`: old-growth management areas (no harvest); old-growth priority deferral
+  areas too if `includeDeferrals = TRUE`.
+- `wildlifeHabitatNoHarvest`: no-harvest wildlife habitat areas.
+- `ungulateWinterRange`: no-harvest zones, and a rotation by species (`uwrConditionalRotation`)
+  in conditional-harvest zones.
+- `visualQuality`: a rotation from the visual quality class (`vqoMaxDisturbed`, `vegHeight`);
+  preservation is no harvest.
+- `communityWatershed`: a rotation from `cwMaxDisturbed` and `cwHeight`.
+
+Rotations follow the forest-cover rules of BC Timber Supply Reviews: rotation = median green-up
+age / maximum share disturbed. Green-up ages are read off the LandR yield curves, as the age at
+which a curve reaches a share (`greenupShare`) of its maximum biomass.
+
+The calculations are in the *timberSupply* package (`timberSupply::harvestConstraintsBC()`);
+this module runs them once, at `init`, and writes `spatialConstraints.tif` to the output path.
+
+# Inputs
+
+| Object | Class | Description |
+|---|---|---|
+| `rasterToMatch` | `SpatRaster` | Template raster of the study area. |
+| `yieldTablesCumulative` | `data.table` | Yield curves (`yieldTableIndex`, `age`, `speciesCode`, `biomass` g/m2), from *Biomass_yieldTables*. |
+| `yieldTablesId` | `data.table` | `pixelIndex` to `yieldTableIndex`, from *Biomass_yieldTables*. |
+
+# Outputs
+
+| Object | Class | Description |
+|---|---|---|
+| `spatialConstraints` | `SpatRaster` | One layer per constraint: rotation age, `NA` = no harvest, 0 = does not apply. |
+
+# Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `greenupShare` | 3 m: 0.026, 5 m: 0.063, 6 m: 0.085, 8.5 m: 0.140 | Share of a curve's maximum biomass at which a stand reaches each green-up height. |
+| `minMaxB` | 6000 | Curves with a maximum biomass (g/m2) below this have no green-up age. |
+| `vegHeight` | 5 | Visually effective green-up height (m). |
+| `vqoMaxDisturbed` | R: 0.03, PR: 0.10, M: 0.20 | Maximum share of a visual quality class below `vegHeight`. |
+| `cwHeight` | 6 | Hydrological green-up height (m) in community watersheds. |
+| `cwMaxDisturbed` | 0.25 | Maximum share of a community watershed below `cwHeight`. |
+| `uwrConditionalRotation` | mule deer 160, goat 150, moose 120, caribou 150 | Rotation in conditional-harvest ungulate winter range. |
+| `includeDeferrals` | `FALSE` | Treat old-growth priority deferral areas as no harvest. |
+| `verbose` | 1 | Print the rotation of each class. |
+
+# Usage
+
+```{r usage-harvestConstraintsBC}
+library(SpaDES.core)
+sim <- simInit(
+  times = list(start = 2020, end = 2020),
+  modules = "harvestConstraintsBC",
+  objects = list(rasterToMatch = rasterToMatch,
+                 yieldTablesCumulative = yieldTablesCumulative,
+                 yieldTablesId = yieldTablesId))
+sim <- spades(sim)
+sim$spatialConstraints
+```
