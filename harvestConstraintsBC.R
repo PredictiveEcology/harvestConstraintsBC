@@ -14,7 +14,7 @@ defineModule(sim, list(
   documentation = list(),
   reqdPkgs = list("SpaDES.core", "bcdata", "data.table", "sf", "terra",
                   "PredictiveEcology/reproducible@development (>= 3.2.1.9061)", # postProcessTo(rasterize = ), #628
-                  "PredictiveEcology/timberSupply@main"),
+                  "PredictiveEcology/timberSupply@development"),
   parameters = bindrows(
     defineParameter("greenupShare", "numeric", c(`3` = 0.026, `5` = 0.063, `6` = 0.085, `8.5` = 0.140), 0, 1,
                     paste("Share of a yield curve's maximum B at which a stand is taken to reach green-up",
