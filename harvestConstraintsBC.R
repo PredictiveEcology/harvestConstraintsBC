@@ -14,7 +14,7 @@ defineModule(sim, list(
   documentation = list(),
   reqdPkgs = list("SpaDES.core", "bcdata", "data.table", "sf", "terra",
                   "PredictiveEcology/reproducible@development (>= 3.2.1.9061)", # postProcessTo(rasterize = ), #628
-                  "PredictiveEcology/timberSupply@development"),
+                  "PredictiveEcology/timberSupply@development (>= 0.0.0.9003)"), # constraintCategories()
   parameters = bindrows(
     defineParameter("greenupShare", "numeric", c(`3` = 0.026, `5` = 0.063, `6` = 0.085, `8.5` = 0.140), 0, 1,
                     paste("Share of a yield curve's maximum B at which a stand is taken to reach green-up",
@@ -72,6 +72,10 @@ doEvent.harvestConstraintsBC <- function(sim, eventTime, eventType) {
         includeDeferrals = P(sim)$includeDeferrals, verbose = P(sim)$verbose)
       terra::writeRaster(sim$spatialConstraints, file.path(outputPath(sim), "spatialConstraints.tif"),
                          overwrite = TRUE)
+      ## the same as maps for viewing: "No harvest" and rotation ages, blank where none apply
+      terra::writeRaster(timberSupply::constraintCategories(sim$spatialConstraints, sim$rasterToMatch),
+                         file.path(outputPath(sim), "spatialConstraintsMap.tif"),
+                         datatype = "INT1U", overwrite = TRUE)
     },
     warning(noEventWarning(sim))
   )

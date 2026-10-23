@@ -23,4 +23,8 @@ test_that("spatialConstraints has one layer per constraint on the grid, and is w
   vals <- terra::values(sc)
   expect_true(all(is.na(vals) | vals >= 0))  # NA = no harvest, 0 = does not apply
   expect_true(file.exists(file.path(SpaDES.core::outputPath(sim), "spatialConstraints.tif")))
+  m <- terra::rast(file.path(SpaDES.core::outputPath(sim), "spatialConstraintsMap.tif"))
+  expect_identical(names(m), c(names(sc), "all"))
+  expect_true(all(terra::is.factor(m)))
+  expect_identical(terra::cats(m)[[1]][[2]][1], "No harvest")
 })
