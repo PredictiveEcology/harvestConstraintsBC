@@ -7,7 +7,7 @@ defineModule(sim, list(
   keywords = c("harvest", "constraints", "protected areas", "visual quality", "British Columbia"),
   authors = c(person("Eliot", "McIntire", email = "eliotmcintire@gmail.com", role = c("aut", "cre"))),
   childModules = character(0),
-  version = list(harvestConstraintsBC = "0.0.2"),
+  version = list(harvestConstraintsBC = "0.0.3"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list(),
